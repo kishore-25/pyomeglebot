@@ -1,0 +1,29 @@
+<aiml version="1.0">
+
+<!-- This category works with the Standard AIML Set -->
+<category>
+<pattern>LOAD DSAJLKASDJIQIJELQNNCXNCAJKOSNBIABIDUBWUIQ</pattern>
+<template>
+<!-- Load standard AIML set -->
+<learn>aiml/Science.aiml</learn>
+<learn>aiml/Reductions.aiml</learn>
+<learn>aiml/Parts.aiml</learn>
+<learn>aiml/Reduce.aiml</learn>
+<learn>aiml/Knowledge.aiml</learn>
+<learn>aiml/Geography.aiml</learn>
+<learn>aiml/Salutations.aiml</learn>
+<learn>aiml/Predicates.aiml</learn>
+<learn>aiml/Happy.aiml</learn>
+<learn>aiml/Inquiry.aiml</learn>
+<learn>aiml/Default.aiml</learn>
+<learn>aiml/Atomic.aiml</learn>
+<learn>aiml/Bot.aiml</learn>
+<learn>aiml/Client.aiml</learn>
+<learn>aiml/Adverbs.aiml</learn>
+<learn>aiml/Computers.aiml</learn>
+<learn>aiml/Botmaster.aiml</learn>
+
+</template>
+</category>
+<category><pattern>VERSIONGET</pattern><template>Welcome to <bot name="version"/></template></category>
+</aiml>
