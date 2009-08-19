@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Written by nix64 of reddit
+# Written by Jason Brandt, 2009
 # A small amount of code was lifted from tizenkotoko's script, found here: http://code.google.com/p/pyomeglealicebot/
 # Do whatever you'd like with this script; if you post it somewhere else, some credit would be nice :)
 #
@@ -187,6 +187,8 @@ class ChatBot(Bot):
         
         self.settings = settings
         self.verbose = verbose
+    	self.dummyMode = False
+    	self.hasReplied = False
         if ai is None:
             self.ai = self.__mkAI()
         else:
@@ -203,9 +205,29 @@ class ChatBot(Bot):
         return ai
         
     def event_Message(self, message):
+    	# Check the message for common internet shorthand not checked by the bot.
+    	# "Male or female?"
+    	if re.match('m(\s*/\s*|\s+|\sor\s)f', message):
+    	    message = 'Are you a male or female?'
+    	# "Age/sex/location?"
+        # XXX: Make this shit work somehow
+    	#if re.match('a/+s/+l/+', message):
+    	    #message = 'What is your age, sex, and location?'
+    	
         r = self.ai.respond(message, self.id)
         if r != '':
-            self.typeMessage(r)
+            self.hasReplied = True
+            return self.reply(r)
+    	else:
+    	    # If it's the first message in the conversation, just respond "Hello".
+    	    if self.hasReplied == False:
+                self.hasReplied = True
+    		return self.reply('Hello.')
+				
+    def reply(self, message):
+	if self.dummyMode == False:
+	    self.typeMessage(message)
+    	return message
         
     def typeMessage(self, message):
         typeTime = 0.10 * len(message)
@@ -218,10 +240,10 @@ class ChatBot(Bot):
         
         # Send the message
         self.sendMessage(message)
-        
-        
-def main(logfile=None):
+	return message
 
+
+def getSettings():
     def loadAI(fname):
         if os.path.isfile(fname):
             # If there's a pickle, load it into the settings
@@ -253,7 +275,10 @@ def main(logfile=None):
             else:
                 # Seriously, not having *any* bot predicates is going to make your shit look all retarded.
                 print('Warning: bot predicate settings do not exist. This will cause some responses to have blank spaces.')
-    # Done gathering AI data
+    return settings
+        
+def main(logfile=None):
+    settings = getSettings()
     ai = None
     
     while True:
