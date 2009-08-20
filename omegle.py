@@ -6,7 +6,7 @@
 # Usage: ./omegle.py [logfile]
 # If no logfile is supplied, a logfile will be created in the "logs" folder, named after the current timestamp
 
-import aiml, json, os, cPickle, random, re, sys, threading, time, urllib, urllib2
+import aiml, json, optparse, os, cPickle, random, re, sys, threading, time, urllib, urllib2
 
 
 START_URL = 'http://omegle.com/start'
@@ -21,7 +21,7 @@ BRAINFILE = 'brn.brn'
 USR_SETTINGS = 'settings.p'
 DEF_SETTINGS = 'settings.p.default'
 
-DEBUG = True
+DEBUG = False
 
 def debug(message):
     if DEBUG == True:
@@ -209,6 +209,9 @@ class ChatBot(Bot):
     	# "Male or female?"
     	if re.match('m(\s*/\s*|\s+|\sor\s)f', message):
     	    message = 'Are you a male or female?'
+    	# "hai" -> "hi"
+    	elif message.lower() == 'hai':
+            message = 'hi'
     	# "Age/sex/location?"
         # XXX: Make this shit work somehow
     	#if re.match('a/+s/+l/+', message):
@@ -277,12 +280,12 @@ def getSettings():
                 print('Warning: bot predicate settings do not exist. This will cause some responses to have blank spaces.')
     return settings
         
-def main(logfile=None):
+def main(logfile=None, botVerbose=False, printLog=True):
     settings = getSettings()
     ai = None
     
     while True:
-        bot = ChatBot(writeLog=logfile, printLog=True, verbose=True, settings=settings, ai=ai)
+        bot = ChatBot(writeLog=logfile, printLog=printLog, verbose=botVerbose, settings=settings, ai=ai)
         bot.start()
         
         while bot.connected == True:
@@ -299,10 +302,22 @@ def main(logfile=None):
             
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        logfile = sys.argv[1]
-    else:
-        logfile = 'logs/%s' % time.strftime('%m%d%Y-%H%M%S')
-        
-    main(logfile)
+    parser = optparse.OptionParser()
+    parser.add_option('-s', '--silent', action='store_true', dest='silent', default=False,
+                    help="don't print conversation messages to stdout")
+    parser.add_option('-d', '--debug', action='store_true', dest='debug',
+                    default=False, help='print debug messages to stdout')
+    parser.add_option('-b', '--bot-debug', action='store_true', dest='bot_debug',
+                    default=False, help='print bot debug messages to stdout')
+    parser.add_option('-f', '--log-file', dest='logfile', default=None, help='store logfile in LOGFILE')
 
+    (options, args) = parser.parse_args()
+    
+    if options.logfile is None:
+        logfile = 'logs/%s' % time.strftime('%m%d%Y-%H%M%S')
+    else:
+        logfile = options.logfile
+
+    DEBUG = options.debug
+        
+    main(logfile, options.bot_debug, not options.silent)
