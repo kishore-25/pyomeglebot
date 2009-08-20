@@ -193,6 +193,12 @@ class ChatBot(Bot):
             self.ai = self.__mkAI()
         else:
             self.ai = ai
+        # XXX there's gotta be a better way to do this
+        # set conversation partner's name as "Stranger" to avoid blank spaces in responses
+        self.ai.respond('I am stranger.')
+
+        # used internally to check for repeated phrases
+        self.__phrases = []
         
     def __mkAI(self):
         ai = aiml.Kernel()
@@ -205,6 +211,14 @@ class ChatBot(Bot):
         return ai
         
     def event_Message(self, message):
+        
+        def customRsp(pattern, response):
+            if re.match(pattern, message, re.IGNORECASE) and pattern not in self.__phrases:
+                self.__phrases.append(pattern)
+                return response
+            else:
+                return None
+            
     	# Check the message for common internet shorthand not checked by the bot.
     	# "Male or female?"
     	if re.match('m(\s*/\s*|\s+|\sor\s)f', message):
@@ -212,6 +226,24 @@ class ChatBot(Bot):
     	# "hai" -> "hi"
     	elif message.lower() == 'hai':
             message = 'hi'
+        # lol racism
+        r = customRsp('.*(nigger|wetback|chink|gook).*', 'You ignorant racist')
+        if r: return self.reply(r)
+        # for some stupid reason i get a "maximum recursion depth exceeded error" from the bot here:
+        r = customRsp('(i (wanna|want to) (have sex with|screw) you|(wanna|want to) (have sex|cyber))', 'Sorry, my sex drive isn\'t what it once was.')
+        if r: return self.reply(r)
+        # same here...
+        r = customRsp('let\'*s (have sex|cyber)', 'No, let\'s not.')
+        if r: return self.reply(r)
+        # reddit!
+        r = customRsp('.*reddit.*', 'I am a redditor.')
+        if r: return self.reply(r)
+        # Digg sucks indeed.
+        r = customRsp('.*digg.*', 'Digg sucks.')
+        if r: return self.reply(r)
+        # FUCK YEAH
+        r = customRsp('.*narwhal.*', 'Narwhals narwhals swimming in the ocean, causing a commotion, \'cause they are so awesome.')
+        if r: return self.reply(r)
     	# "Age/sex/location?"
         # XXX: Make this shit work somehow
     	#if re.match('a/+s/+l/+', message):
@@ -221,13 +253,15 @@ class ChatBot(Bot):
         if r != '':
             self.hasReplied = True
             return self.reply(r)
-    	else:
+    	elif self.hasReplied == False:
     	    # If it's the first message in the conversation, just respond "Hello".
-    	    if self.hasReplied == False:
-                self.hasReplied = True
-    		return self.reply('Hello.')
+    	    return self.reply('Hello.')
+    	else:
+            # Misc. responses
+            return customRsp('.*faggot.*', 'I have nothing against gays.')
 				
     def reply(self, message):
+        self.hasReplied = True
 	if self.dummyMode == False:
 	    self.typeMessage(message)
     	return message
@@ -310,14 +344,27 @@ if __name__ == '__main__':
     parser.add_option('-b', '--bot-debug', action='store_true', dest='bot_debug',
                     default=False, help='print bot debug messages to stdout')
     parser.add_option('-f', '--log-file', dest='logfile', default=None, help='store logfile in LOGFILE')
+    parser.add_option('-x', '--dummy-mode', dest='dummy_mode', default=False,
+                    action='store_true', help='interactive "dummy mode"')
 
     (options, args) = parser.parse_args()
-    
-    if options.logfile is None:
-        logfile = 'logs/%s' % time.strftime('%m%d%Y-%H%M%S')
-    else:
-        logfile = options.logfile
-
     DEBUG = options.debug
-        
-    main(logfile, options.bot_debug, not options.silent)
+
+    # Dummy mode
+    if options.dummy_mode == True:
+        settings = getSettings()
+        bot = ChatBot(settings=settings, verbose=options.bot_debug)
+        bot.dummyMode = True
+        while True:
+            yourMessage = raw_input('You: ')
+            botMessage = bot.event_Message(yourMessage)
+            if botMessage is not None:
+                print('Bot: %s' % botMessage)
+    else:
+    # Normal mode
+        if options.logfile is None:
+            logfile = 'logs/%s' % time.strftime('%m%d%Y-%H%M%S')
+        else:
+            logfile = options.logfile
+            
+        main(logfile, options.bot_debug, not options.silent)
