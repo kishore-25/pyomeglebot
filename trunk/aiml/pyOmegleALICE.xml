@@ -23,6 +23,11 @@
 <learn>aiml/Computers.aiml</learn>
 <learn>aiml/Botmaster.aiml</learn>
 
+<learn>aiml/Drugs.aiml</learn>
+<learn>aiml/Interjection.aiml</learn>
+<learn>aiml/IU.aiml</learn>
+<learn>aiml/Reductions.aiml</learn>
+
 </template>
 </category>
 <category><pattern>VERSIONGET</pattern><template>Welcome to <bot name="version"/></template></category>
